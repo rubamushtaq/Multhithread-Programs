@@ -1,0 +1,119 @@
+/**
+ * Locate correct position of value of a sorted array by comparing to values
+ * from other array. It will be working in multi-threaded enviornment.
+ * 
+ * @author Ruba
+ *
+ */
+public class MergeThread extends Thread {
+
+	private int index;
+	private int[] searchArray;
+	private int value;
+	private char threadName;
+	private int[] mergeArr;
+	private int no_of_elements;
+
+	public MergeThread(int index, int[] searchArray, int value, char threadName, int[] mergeArr, int no_of_elements) {
+		super();
+		this.index = index;
+		this.searchArray = searchArray;
+		this.value = value;
+		this.threadName = threadName;
+		this.mergeArr = mergeArr;
+		this.no_of_elements = no_of_elements;
+	}
+
+	public void run() {
+		locate_merge();
+	}
+
+	private void locate_merge() {
+		int lower;
+		int middle = 0;
+		int upper;
+
+		// find if it is the smallest value
+
+		if (this.value < searchArray[0]) {
+			mergeArr[index] = this.value;
+		} else if (this.value > searchArray[no_of_elements - 1]) {
+			// if it is the largest value
+			mergeArr[index + no_of_elements] = this.value;
+
+		} else {
+			// if exists between middle
+			lower = 0;
+			upper = no_of_elements - 1;// to work index
+
+			while (upper > lower) {
+				middle = (upper + lower) / 2;
+				if (value > searchArray[middle]
+						&& (value < searchArray[middle + 1] || value == searchArray[middle + 1])) {
+					break;
+				} else if (value < searchArray[middle]) {
+					upper = middle;
+				} else if (value > searchArray[middle]) {
+					lower = middle + 1;
+				}
+			}
+			mergeArr[index + middle + 1] = this.value;
+		}
+	}
+
+}
+
+-------------------------------------------------- Main Class-------------------------------------------------------------
+
+/**
+ * Create 2n threads where each specific thread is responsible to determine its
+ * location
+ * 
+ * @author Ruba
+ */
+public class RunMergeThread {
+
+	public static void main(String[] args) {
+		/**
+		 * @arr1 - unique numbers sorted array
+		 * @arr2-  unique numbers sorted array
+		 */
+		int[] arr1 = { 10, 15, 22, 80 };
+		int[] arr2 = { 5, 18, 19, 60 };
+		int[] merge_sorted = new int[arr1.length + arr2.length];
+		MergeThread[] locateA = new MergeThread[arr1.length];
+		MergeThread[] locateB = new MergeThread[arr2.length];
+		for (int i = 0; i < arr1.length; i++) {
+			MergeThread m = new MergeThread(i, arr2, arr1[i], 'A', merge_sorted, arr2.length);
+			locateA[i] = m;
+			m.start();
+		}
+
+		for (int i = 0; i < arr2.length; i++) {
+			MergeThread m = new MergeThread(i, arr1, arr2[i], 'B', merge_sorted, arr1.length);
+			locateB[i] = m;
+			m.start();
+		}
+		
+		// waiting all threads to execute
+		try {
+			for (int i = 0; i < locateA.length; i++) {
+				locateA[i].join();
+			}
+			for (int i = 0; i < locateB.length; i++) {
+				locateB[i].join();
+			}
+		} catch (InterruptedException ie) {
+
+		}
+
+		System.out.println("............... Printing Resultant Sorted Array ...............");
+		System.out.print("[");
+		for (int n : merge_sorted) {
+			System.out.print(n);
+			System.out.print(" ");
+		}
+		System.out.print("]");
+	}
+
+}
